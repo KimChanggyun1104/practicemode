@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로또 번호 추첨기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-gradient: linear-gradient(135deg, #e0f2fe, #bae6fd, #7dd3fc);
+    --container-bg: #ffffff;
+    --container-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --button-bg: #0284c7;
+    --button-hover: #0369a1;
+    --button-text: #ffffff;
+    --border-color: rgba(15, 23, 42, 0.08);
+    --bonus-text-color: #334155;
+}
+
+[data-theme="dark"] {
+    --bg-gradient: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
+    --container-bg: rgba(30, 41, 59, 0.7);
+    --container-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --button-bg: #38bdf8;
+    --button-hover: #0ea5e9;
+    --button-text: #0f172a;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --bonus-text-color: #cbd5e1;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+}
+
+body{
+    background: var(--bg-gradient);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    transition: background 0.4s ease;
+}
+
+.container{
+    background: var(--container-bg);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    width:420px;
+    padding:30px;
+    border-radius:24px;
+    text-align:center;
+    box-shadow: var(--container-shadow);
+    transition: all 0.4s ease;
+}
+
+.header-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -10px;
+    margin-right: -10px;
+    margin-bottom: 10px;
+}
+
+.theme-toggle-btn {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    color: var(--text-primary);
+}
+
+.theme-toggle-btn:hover {
+    background-color: var(--border-color);
+    transform: scale(1.15) rotate(15deg);
+}
+
+h1{
+    margin-bottom:25px;
+    color: var(--text-primary);
+    font-weight: 800;
+    font-size: 28px;
+    transition: color 0.4s ease;
+}
+
+.numbers{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:12px;
+    margin:25px 0;
+}
+
+.ball{
+    width:55px;
+    height:55px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:22px;
+    font-weight:800;
+    color:white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: pop .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes pop{
+    0%{
+        transform:scale(0);
+    }
+    100%{
+        transform:scale(1);
+    }
+}
+
+button:not(.theme-toggle-btn){
+    background: var(--button-bg);
+    color: var(--button-text);
+    border:none;
+    padding:14px 28px;
+    font-size:18px;
+    font-weight: 700;
+    border-radius:12px;
+    cursor:pointer;
+    transition: all .2s ease;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+}
+
+button:not(.theme-toggle-btn):hover{
+    background: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3);
+}
+
+button:not(.theme-toggle-btn):active{
+    transform: translateY(0);
+}
+
+.bonus{
+    margin-top:15px;
+    font-size:20px;
+    font-weight:700;
+    color: var(--bonus-text-color);
+    transition: color 0.4s ease;
+}
+
+.footer{
+    margin-top:25px;
+    color: var(--text-secondary);
+    font-size:13px;
+    transition: color 0.4s ease;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="header-actions">
+        <button id="themeToggle" class="theme-toggle-btn" aria-label="테마 전환">🌙</button>
+    </div>
+
+    <h1>🎲 로또 번호 추첨기</h1>
+
+    <div id="numbers" class="numbers"></div>
+
+    <div id="bonus" class="bonus"></div>
+
+    <button onclick="drawLotto()">
+    번호 추첨하기
+    </button>
+
+    <div class="footer">
+    1~45 중복 없이 추첨
+    </div>
+</div>
+
+<script>
+// 테마 설정
+const themeToggle = document.getElementById('themeToggle');
+
+function updateToggleIcon(theme) {
+    themeToggle.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+}
+
+themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateToggleIcon(newTheme);
+});
+
+// 초기 테마 적용
+const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateToggleIcon(savedTheme);
+
+
+function getColor(num){
+    // 그라디언트 배경색 지정
+    if(num<=10) return "linear-gradient(135deg, #f59e0b, #eab308)"; // 노랑/주황
+    if(num<=20) return "linear-gradient(135deg, #3b82f6, #06b6d4)"; // 파랑/하늘
+    if(num<=30) return "linear-gradient(135deg, #ef4444, #f43f5e)"; // 빨강/핑크
+    if(num<=40) return "linear-gradient(135deg, #6b7280, #9ca3af)"; // 회색
+    return "linear-gradient(135deg, #10b981, #22c55e)"; // 초록
+}
+
+function drawLotto(){
+    let nums=[];
+
+    while(nums.length<7){
+        let n=Math.floor(Math.random()*45)+1;
+        if(!nums.includes(n)){
+            nums.push(n);
+        }
+    }
+
+    let main=nums.slice(0,6).sort((a,b)=>a-b);
+    let bonus=nums[6];
+
+    const numbers=document.getElementById("numbers");
+    numbers.innerHTML="";
+
+    main.forEach(num=>{
+        let ball=document.createElement("div");
+        ball.className="ball";
+        ball.style.background=getColor(num);
+        ball.innerText=num;
+        numbers.appendChild(ball);
+    });
+
+    let bonusHTML=
+    `<br>
+    🎁 보너스 번호 :
+    <span style="
+        display:inline-flex;
+        width:45px;
+        height:45px;
+        border-radius:50%;
+        justify-content:center;
+        align-items:center;
+        background:${getColor(bonus)};
+        color:white;
+        font-weight:bold;
+        margin-left:10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    ">
+    ${bonus}
+    </span>`;
+
+    document.getElementById("bonus").innerHTML=bonusHTML;
+}
+
+drawLotto();ㅇ
+</script>
+
+</body>
+</html>
